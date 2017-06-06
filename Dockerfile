@@ -35,7 +35,10 @@ RUN npm install -g bids-validator
 RUN wget -O- http://neuro.debian.net/lists/trusty.us-ca.full | sudo tee /etc/apt/sources.list.d/neurodebian.sources.list && \
             apt-key adv --recv-keys --keyserver hkp://pgp.mit.edu:80 0xA5D32F012649A5A9 && \
             apt-get update && \
-            apt-get install -y fsl-5.0-core fsl-5.0-doc fsl-atlases fslview
+            apt-get install -y fsl-5.0-core fsl-5.0-doc fsl-atlases fslview && \
+            apt-get autoclean -y && \
+            apt-get clean -y && \
+            apt-get autoremove -y
 
 
 # install C3d
@@ -49,7 +52,10 @@ RUN  wget http://sourceforge.net/projects/c3d/files/c3d/c3d-0.8.2/c3d-0.8.2-Linu
 
 # install ANTS
 RUN apt-get update && \
-    apt-get install -y ants
+    apt-get install -y ants && \
+    apt-get autoclean -y && \
+    apt-get clean -y && \
+    apt-get autoremove -y
 
 # install AFNI
 COPY afni_minimal.tar.gz /tmp/
@@ -75,6 +81,7 @@ RUN /tmp/cpac_install.sh -p
 # install CPAC
 RUN /tmp/cpac_install.sh -n cpac
 
+COPY version /code/version
 COPY bids_utils.py /code/bids_utils.py
 COPY run.py /code/run.py
 COPY cpac_templates.tar.gz /cpac_resources/cpac_templates.tar.gz
@@ -84,7 +91,5 @@ RUN chmod +x /code/run.py && cd /cpac_resources \
 
 COPY default_pipeline.yaml /cpac_resources/default_pipeline.yaml
 COPY test_pipeline.yaml /cpac_resources/test_pipeline.yaml
-
-COPY version /version
 
 ENTRYPOINT ["/code/run.py"]

@@ -33,7 +33,7 @@ ubuntu_packages=("cmake" "curl" "git" "graphviz" "graphviz-dev" "gsl-bin" "libca
     "libxp6" "libxp-dev" "make" "mesa-common-dev" "mesa-utils" "netpbm" "pkg-config" \
     "build-essential" "xvfb" "xauth" "libgl1-mesa-dri" "tcsh" "unzip" "zlib1g-dev" "m4")
 
-conda_packages=("pandas" "cython" "numpy" "scipy" "matplotlib" "networkx" "traits" "pyyaml" "jinja2" "nose" "ipython" "pip" "wxpython")
+conda_packages=("pandas" "cython" "numpy==1.11" "scipy" "matplotlib" "networkx" "traits" "pyyaml" "jinja2==2.8" "nose" "ipython" "pip" "wxpython")
 
 pip_packages=("future" "prov" "simplejson" "lockfile" "pygraphviz" "nibabel" "nipype" "patsy" "memory_profiler" "psutil" "configparser" "indi_tools")
 
@@ -207,6 +207,8 @@ function install_system_dependencies {
            #     fi
            # done
             # finish up
+            apt-get autoclean -y
+            apt-get clean -y
             apt-get autoremove -y
         else
             echo "Linux distribution not recognized.  System-level dependencies cannot" \
@@ -349,6 +351,13 @@ function install_python_dependencies {
         echo "[ $(date) ] Conda install ${p} failed!" >> ~/cpac.log
         exit 1 
     fi
+    conda clean -y -t -i
+        if [ $? -ne 0 ]
+    then
+        echo "[ $(date) ] Conda clean failed!"
+        echo "[ $(date) ] Conda clean failed!" >> ~/cpac.log
+        exit 1
+    fi
     #for p in ${missing_conda_dependencies[@]}
     #do
         #echo "[ $(date) ] Conda install ${p}!"
@@ -420,6 +429,8 @@ function get_missing_python_dependencies {
         python_dependencies_installed=1
         for p in ${pip_packages[@]}
         do
+            p=$(echo ${p} | cut -d= -f1)
+
             if [ ${p} == "indi_tools" ]
             then
                 /usr/local/bin/miniconda/bin/python -c "import indi_aws" 2> /dev/null
@@ -446,6 +457,9 @@ function get_missing_python_dependencies {
 
         for p in ${conda_packages[@]}
         do
+
+            p=$(echo ${p} | cut -d= -f1)
+
             if [ ${p} == "wxpython" ]
             then
                 /usr/local/bin/miniconda/bin/python -c "import wx" 2> /dev/null
@@ -533,7 +547,9 @@ function install_fsl {
                 echo "FSL Install failed!"
                 exit 1
             fi
-
+            apt-get autoclean -y
+            apt-get clean -y
+            apt-get autoremove -y
         fi
         FSLDIR=/usr/share/fsl/5.0
         . ${FSLDIR}/etc/fslconf/fsl.sh
